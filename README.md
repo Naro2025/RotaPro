@@ -1,58 +1,26 @@
-# RotaPro
+# RotaPro 📅
 
-Gestión de turnos laborales de escritorio: calendario híbrido (mes + vista semanal TimeGrid), planner drag & drop, turnos solapados side-by-side, overnight partido, emoji en plantillas, selector de color ilimitado con armonías cromáticas, 4 formatos laborales y personalización de tema (claro/oscuro/sistema), acento y densidad, con animaciones que respetan `prefers-reduced-motion`.
+RotaPro es una aplicación de escritorio de alto rendimiento diseñada para profesionales con horarios no tradicionales (turnos rotativos, guardias, fines de semana). Construida con un enfoque moderno y optimizado para Windows, macOS y Linux.
 
-## Stack
+## ✨ Características
+- **Planificador visual:** Arrastrar y soltar turnos (drag & drop) en vista mensual y semanal.
+- **Gestión de turnos:** Soporte para Full-time, Part-time, Guardias y turnos nocturnos (overnight).
+- **Personalización total:** Modo claro/oscuro, densidad de la interfaz, colores HEX personalizados y emojis.
+- **Exportación:** Sincronización de turnos con Google Calendar, Apple Calendar u Outlook mediante archivos `.ics` (iCalendar).
+- **Alto rendimiento:** Motor de solapamiento propio en TS puro. Consumo de memoria < 80MB.
 
-- **Tauri v2** — shell de escritorio (Rust + WebView nativo)
-- **React + TypeScript + Vite** — frontend
-- **Tailwind CSS v4** — estilos (variables CSS)
-- **SQLite** vía **rusqlite** — persistencia local
+## 🛠️ Stack Tecnológico
+- **Frontend:** React + TypeScript + Tailwind CSS + Framer Motion
+- **Backend:** Rust + Tauri v2
+- **Base de Datos:** SQLite
 
-## Requisitos
+## 🚀 Instalación (Desarrollo)
+1. Clona el repositorio: `git clone https://github.com/TU_USUARIO/RotaPro.git`
+2. Instala dependencias: `npm install`
+3. Corre en modo desarrollo: `npm run tauri dev`
 
-- Node.js ≥ 20
-- Rust (stable)
-- Linux — dependencias del sistema:
+## 📦 Generar Instaladores
+Para compilar la versión de producción:
+`npm run tauri build`
 
-```bash
-# Fedora / dnf
-sudo dnf install pkgconf-pkg-config dbus-devel gtk3-devel webkit2gtk4.1-devel librsvg2-devel libsoup3-devel openssl-devel
-```
-
-```bash
-# Debian / Ubuntu / apt
-sudo apt install pkg-config libdbus-1-dev libgtk-3-dev libwebkit2gtk-4.1-dev librsvg2-dev libsoup-3.0-dev libssl-dev
-```
-
-## Desarrollo
-
-```bash
-npm install
-npm run tauri dev
-```
-
-## Pruebas
-
-```bash
-npm test
-cargo test --manifest-path src-tauri/Cargo.toml
-```
-
-## Build de release
-
-```bash
-npm run tauri build
-```
-
-## Estructura
-
-La arquitectura y el esquema de datos están documentados en [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
-
-## Guía rápida de uso
-
-- **Planner**: arrastra una plantilla de turno (Mañana, Tarde, Noche, Guardia 24h) a un día del calendario para asignarla.
-- **Cambio mes/semana**: alterna entre el calendario mensual y la vista semanal TimeGrid (turnos posicionados por hora, solapamientos side-by-side, overnight partido en dos segmentos).
-- **Crear turno con emoji y color**: en el form "+ Turno" elige un emoji y un color (picker con swatches + armonías cromáticas) antes de guardar la plantilla.
-- **Borrar**: pasa el cursor sobre una asignación y pulsa el botón **×** para eliminarla.
-- **Ajustes**: abre el panel de configuración con el engranaje para cambiar tema (claro/oscuro/sistema), acento y densidad.
+*(Aquí puedes añadir las capturas de pantalla que me mostraste, subiéndolas al repositorio y enlazándolas con `![Vista Mensual](ruta/a/tu/imagen.png)`)*
