@@ -1,0 +1,29 @@
+[package]
+name = "rotapro"
+version = "1.0.0"
+description = "Gestión de turnos — desktop"
+authors = ["rotapro"]
+edition = "2021"
+
+[lib]
+name = "rotapro_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Declarada para el chunk ② (db.rs): CRUD sobre SQLite vendored, sin runtime async.
+rusqlite = { version = "0.41", features = ["bundled"] }
+uuid = { version = "1", features = ["v7", "serde"] }
+tauri-plugin-dialog = "2"
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+opt-level = "s"
+strip = "symbols"
+panic = "abort"

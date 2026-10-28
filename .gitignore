@@ -1,0 +1,19 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Rust / Tauri
+src-tauri/target/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Entorno
+.env
+.env.local

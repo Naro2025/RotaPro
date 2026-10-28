@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Capability de la ventana principal. Deny-by-default: baseline core + permiso dialog:allow-save para el diálogo nativo de guardado (export .ics). Sin fs/shell/red.","local":true,"windows":["main"],"permissions":["core:default","dialog:allow-save"]}}

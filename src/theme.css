@@ -1,0 +1,60 @@
+/*
+ * RotaPro — tokens de tema.
+ * Solo variables, sin lógica de cambio: el toggle `data-theme` /
+ * `data-density` en <html> lo implementará SettingsPanel (chunk ②).
+ */
+
+:root {
+  /* Acento de marca (compartido entre temas) */
+  --accent: #4f46e5;
+
+  /* Densidad — 3 niveles */
+  --density: 1;
+  --density-compact: 0.9;
+  --density-normal: 1;
+  --density-relaxed: 1.15;
+  --row-height: calc(2.5rem * var(--density));
+  --cell-padding: calc(0.5rem * var(--density));
+
+  /* Altura de cada hora del TimeGrid semanal (3 niveles de densidad). */
+  --hour-h: 52px;
+  --hour-h-compact: 44px;
+  --hour-h-normal: 52px;
+  --hour-h-relaxed: 60px;
+}
+
+/* Tema claro (por defecto) */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f8fafc;
+  --bg-surface: #ffffff;
+  --fg: #0f172a;
+  --fg-muted: #64748b;
+  --border: #e2e8f0;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --bg-surface: #1e293b;
+  --fg: #e2e8f0;
+  --fg-muted: #94a3b8;
+  --border: #334155;
+}
+
+/* Densidad aplicada vía data-density en <html> */
+[data-density="compact"] {
+  --density: var(--density-compact);
+  --hour-h: var(--hour-h-compact);
+}
+
+[data-density="normal"] {
+  --density: var(--density-normal);
+  --hour-h: var(--hour-h-normal);
+}
+
+[data-density="relaxed"] {
+  --density: var(--density-relaxed);
+  --hour-h: var(--hour-h-relaxed);
+}

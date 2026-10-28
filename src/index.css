@@ -1,0 +1,39 @@
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+@import "./theme.css";
+
+/*
+ * Tailwind v4 (CSS-first). `@theme inline` hace que las utilidades
+ * `bg-bg`, `text-fg`, `border-border`, `text-accent`, … referencien las
+ * variables CSS definidas en theme.css, de modo que el tema cambie en
+ * runtime sin regenerar CSS.
+ */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--bg-surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

@@ -1,0 +1,150 @@
+═══════════════════════════════════════════════════════════════════
+ ROTAPRO — ESTADO DE SESIÓN (leer PRIMERO en cualquier sesión nueva)
+ Última actualización: 2026-10-27 · Fases 1 → 6 COMPLETAS · v1.0.0 empaquetada (deb/rpm/AppImage) · docs sincronizados
+═══════════════════════════════════════════════════════════════════
+
+## QUÉ ES
+App de escritorio multiplataforma para gestión de turnos laborales.
+Stack: Tauri v2 + React/TS + Vite + Tailwind v4 + SQLite (rusqlite).
+Fuente de verdad técnica: docs/ARCHITECTURE.md (sincronizado con Fase 3/3.5).
+
+## FASES COMPLETADAS
+- Fase 1: backend, 13+1 comandos IPC, BD SQLite, tema claro/oscuro/SO.
+- Fase 2: planner drag&drop, plantillas custom, asignación a rango de días,
+  overnight, panel settings persistente, fix drop en WeekView (useDayDrop compartido).
+- Fase 3 (UI avanzada, CERO librerías nuevas, motor TS puro):
+  · Motor anti-solapamiento: src/utils/overlap.ts (packOverlaps, buildDayShifts,
+    clusters transitivos + carriles greedy). DayCell/WeekView renderizan
+    side-by-side 50/50, 33/33/33. Orden determinista por hora de inicio.
+  · TimeGrid semanal: WeekView reescrita, eje 00:00–23:00, posicionamiento
+    absoluto en PORCENTAJES, overnight partido (cola día inicio + continuación
+    atenuada isContinuation al día siguiente). src/utils/timegrid.ts.
+  · Frontera de semana: get_calendar_week_impl devuelve lunes−1 … domingo
+    para que la continuación del overnight del domingo anterior llegue al lunes.
+  · Micro pista 0–24 h con divisoria AM/PM en celdas del mes.
+- Fase 3.5 (polish):
+  · Emoji en plantillas: migración idempotente en src-tauri/src/db.rs (column_exists,
+    sin user_version), #[serde(default)], trim + ≤16 bytes UTF-8 (cubre ZWJ). BDs
+    existentes sobreviven sin pérdida. Chips/TimeBlocks renderizan "{emoji} {nombre}".
+  · ColorPicker compartido e ILIMITADO (src/components/ColorPicker.tsx): grid ~24
+    swatches + input type="color" + hex validado + combinador cromático
+    (src/utils/color.ts: colorHarmonies — complementario, análogos, triádicos,
+    monocromático; fallback #888888) + preview. Usado en form "+ Turno" Y acento
+    de SettingsPanel (reemplazó los 8 presets).
+  · Fuente Inter Variable (@fontsource-variable/inter), tabular-nums en eje horario.
+  · Animaciones: paquete "motion" 14.7.1 (framer-motion renombrado, import
+    "motion/react"), MotionConfig reducedMotion="user". Fade-in en
+    RangeDialog/SettingsPanel, hover scale 1.02 en chips/bloques, transición
+    Mes↔Semana (motion.div key={mode}), elevación 1.03+shadow-lg al arrastrar
+    Planner (estado draggingId).
+  · Bugfix post-prueba visual: swatches de armonías desalineados/desbordados en
+    ColorPicker → Swatch unificado w-5 h-5 shrink-0 rounded-full border,
+    contenedores flex flex-wrap gap-2 min-w-0, etiquetas w-24 truncate. GATE OK.
+- Fase 4 (export .ics + diálogo nativo de guardado):
+  · Motor puro src-tauri/src/ics.rs (RFC 5545, sin tauri): IcsEvent, next_day,
+    escape_text, fold_line (≤75 octetos, no parte emoji), epoch_to_dtstamp,
+    build_ics (CRLF en todas las líneas).
+  · export_calendar_ics_impl: hora efectiva (override ?? plantilla), summary
+    "{emoji} {name}".trim(), DTSTART/DTEND flotantes en hora local, overnight
+    → DTEND +1 día, añade ".ics" si falta. Err si no hay assignments.
+  · Plugin autorizado (explícito): tauri-plugin-dialog (cargo) +
+    @tauri-apps/plugin-dialog (npm); permiso dialog:allow-save. Diálogo save()
+    desde SettingsPanel (sección "Exportar", auto-clear ~4 s).
+- Fase 5 (hardening de render Mes/Semana + prueba de estrés 300 turnos):
+  · Auditoría capabilities/unwraps SIN cambios: deny-by-default ya cumplido
+    (capabilities/default.json lista solo los 15 comandos IPC); unwraps solo en
+    tests/bootstrap, ninguno en rutas de producción.
+  · Rendimiento (solo lo que aporta): DayCell memoiza el empaquetado por día
+    (useMemo de buildDayShifts/clusters) + React.memo; WeekView memoiza
+    TimeBlock (hoja pura) con handlers estables (useCallback); array vacío
+    estable en MonthView (footgun `?? []` que rompía memo). Estrés de 300
+    assignments/mes (~10/día, solapes/carriles/overnights/overrides): pipeline
+    completo en ~0.5 ms (< 200 ms umbral) — virtualización NO justificada (DOM
+    acotado: 42 celdas / 7 columnas). Test nuevo: src/utils/overlap.stress.test.ts.
+  · Nota de diseño: React.memo en DayCell/DayColumn tiene beneficio acotado
+    porque ambos consumen el store (contexto) vía useSchedule/useDayDrop (el
+    contexto salta el memo); la ganancia real es el useMemo (evita re-empaquetar
+    en re-renders "de ruido") + memo de TimeBlock. NO se tocó useDayDrop.ts /
+    TEMPLATE_MIME (sin cuello de botella detectado ahí).
+- Fase 6 (empaquetado v1.0.0): version bump 0.1.0→1.0.0 en tauri.conf.json y
+  Cargo.toml; npm run tauri build → RotaPro_1.0.0_amd64.deb (2.48 MiB),
+  RotaPro-1.0.0-1.x86_64.rpm (2.49 MiB), RotaPro_1.0.0_amd64.AppImage
+  (109.16 MiB). Incluye Fases 1–5 completas (export .ics incluido).
+
+## GATE DE REGRESIÓN (ejecutar tras cualquier cambio)
+En raíz (ruta con espacio → SIEMPRE entre comillas):
+  npm run build          → debe compilar
+  npx vitest run         → 78/78 tests (7 archivos)
+En src-tauri/ (cargo en $HOME/.cargo/bin/cargo):
+  cargo test             → 39/39 (2 #[ignore]: stress_seed_f5/stress_clean_f5)
+  cargo build 2>&1 | grep -c warning   → 0
+
+## DECISIONES CLAVE (no renegociar sin usuario)
+- Semana ISO lunes–domingo. UUIDv7 TEXT PK. assignments.uid.
+- Settings en tabla clave-valor. Capabilities deny-by-default.
+- Overnight es DERIVADO (end <= start); is_overnight en respuestas Rust es
+  enriquecimiento computado, NO fuente de verdad.
+- @dnd-kit DESCARTADO (no usa HTML5 DnD nativo → riesgo sobre useDayDrop).
+  schedule-x/rbc/FullCalendar descartados (reemplazan vistas custom).
+- contrastText retorna "#0f172a"|"#ffffff" (no white/black literals) —
+  preservar por tests existentes. Vive en src/utils/color.ts.
+- NO existe upsert_assignment; comandos son create_/update_/delete_assignment
+  (idempotencia solo en create_assignments_range, cap 92 días).
+- NO añadir librerías sin autorización explícita del usuario
+  (Inter y motion fueron las únicas autorizadas, Fase 3.5; tauri-plugin-dialog
+  + @tauri-apps/plugin-dialog autorizados en Fase 4, 2026-10-27, explícito).
+- useDayDrop.ts / TEMPLATE_MIME: no tocar sin razón.
+
+## MAPA DE ARCHIVOS RELEVANTES
+src/utils/overlap.ts ......... motor solapamiento (packOverlaps, buildDayShifts)
+src/utils/overlap.stress.test.ts  estrés 300/mes (corrección + timing, Fase 5)
+src/utils/timegrid.ts ........ segmentos TimeGrid + pista mensual
+src/utils/color.ts ........... hex↔rgb↔hsl, contrastText, colorHarmonies
+src/components/ColorPicker.tsx  picker compartido (turnos + acento)
+src/components/WeekView.tsx ... TimeGrid semanal (TimeBlock, DayColumn, eje)
+src/components/DayCell.tsx ..... celda mes (clusters/carriles, micro pista AM/PM)
+src/components/Planner.tsx .... plantillas, form "+ Turno", elevación al arrastrar
+src/components/SettingsPanel.tsx  tema/densidad/acento (con ColorPicker)
+src/hooks/useDayDrop.ts ....... drop compartido + TEMPLATE_MIME
+src/theme.css ................. vars tema/densidad/--hour-h
+src/stores/scheduleStore.ts ... acciones store (rangeMode, rangeDialog, emoji)
+src-tauri/src/db.rs ........... DDL + migración emoji idempotente
+src-tauri/src/commands.rs ..... impls *_impl, get_calendar_week_impl (rango −1)
+src-tauri/src/models.rs ....... structs camelCase, is_overnight computado, emoji
+src-tauri/src/ics.rs .......... motor iCalendar puro (RFC 5545, folding/escaping)
+src/api.ts .................... wrappers invoke (+ exportCalendarIcs)
+src/components/SettingsPanel.tsx  tema/densidad/acento + sección Exportar (.ics)
+
+## PENDIENTE / BACKLOG (aprobar con usuario antes de tocar)
+Cerrados recientemente:
+- Re-prueba visual del usuario (armonías del ColorPicker, emoji+color tras
+  reinicio, animaciones, DnD) — CERRADO 2026-10-27: usuario confirmó todo OK.
+- Sincronizar docs/ARCHITECTURE.md (+ README breve) con Fase 3/3.5 — HECHO
+  2026-10-27 (esta pasada).
+- Prueba visual del hardening (300 turnos sembrados en octubre) — CERRADO
+  2026-10-27: usuario confirmó fluidez perfecta (scroll, hover, DnD, cambio de
+  vista). BD limpiada (stress_clean_f5: 300 borradas, dato original intacto).
+Pendientes:
+1. Decidir con el usuario: conservar o eliminar los tests #[ignore]
+   stress_seed_f5 / stress_clean_f5 (src-tauri/src/commands.rs, marcador
+   notes='STRESS-F5') — útiles para re-estrés manual; NO corren en el gate.
+2. Backlog mayor: sync iCal/Google bidireccional (uid listo), tzid, RRULE vía
+   ALTER TABLE, LazyMotion/motion-react-mini para arranque, slide lateral drawer.
+3. Nota menor: identifier com.rotapro.app termina en ".app" — solo problema en
+   macOS (Bundle ID inválido); inofensivo en Windows/Linux.
+
+## MODO DE TRABAJO DEL USUARIO (estricto)
+- Conductor SOLO planifica y delega; TODO cambio de código va a go-implementer.
+- Contratos mínimos: rutas + firmas + criterio de aceptación.
+- Chunks pequeños secuenciales; QA por módulo; gate independiente del Conductor.
+- Respuestas extremadamente concisas.
+- Flujo: Plan → Build (go-implementer) → Verify (suites + gate por shell).
+- Nota de flota: go-qa y go-research (deepseek-v4-flash) cayeron en la sesión
+  anterior → fallback: suites del implementer + gate manual por shell. Verificar
+  si vuelven a estar disponibles antes de asumir que siguen caídos.
+
+═══════════════════════════════════════════════════════════════════
+ FIN — Cualquier sesión nueva: leer este archivo + docs/ARCHITECTURE.md,
+ correr el gate para confirmar estado, y preguntar al usuario por el punto
+ 1 pendiente (rebuild release) antes de proponer nada del backlog.
+═══════════════════════════════════════════════════════════════════
